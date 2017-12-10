@@ -8,16 +8,97 @@
   <meta name="description" content="The HTML5 Herald">
   <meta name="author" content="SitePoint">
   <style>
-    #background{
-        background-image:url('http://i0.kym-cdn.com/photos/images/original/000/682/636/a56.jpg');
+    @import url(https://fonts.googleapis.com/css?family=Shadows+Into+Light);
+
+    body {
+    background:#D3D3D3;
+    
     }
+    #allthethings {
+    width:0px;
+    height:0px;
+    
+    border-left: 300px solid transparent;
+    border-right:300px solid transparent;
+    border-top: 300px solid transparent;
+    border-radius: px;
+    position:relative;
+    margin:auto;
+    top:5px;
+    left:2px;
+    }
+    #title {
+    
+    position:relative;
+    bottom:330px;
+    right:300px;
+    height:500px;
+    width:600px;
+    background:#008000;
+    text-align:center;
+    font-size:50px;
+    background-size: 1px 300%;
+    color:orange;
+    font-family:shadows into light;
+    }
+
+    #subtitle {
+    font-size:30px;
+    }
+
+    #single {
+    
+    position:relative;
+    bottom:330px;
+    right:300px;
+    height:50px;
+    width:600px;
+    background:#006680;
+    text-align:center;
+    font-size:30px;
+    background-size: 1px 300%;
+    -webkit-transition:0.5s;
+    transition:0.5s;
+    color:orange;
+    font-family:shadows into light;
+    
+    cursor:pointer;
+    
+    
+    
+    }
+
+    #single:hover {
+    background:#7A0000;
+    color:white;
+    -webkit-transform:rotate(-1deg);
+    transform:rotate(-2deg);
+    
+    
+    }
+
+
+
+    #single p {
+    position:relative;
+    top:2px;
+    right:4px;
+    
+    
+    }
+
   </style>
 
   
 </head>
 
 <body>
-    <div id="background"></div>
-  <script src="js/scripts.js"></script>
-</body>
+
+<div id="allthethings">
+    <div id="title"><p>SHOOTING-PIRATES-WITH-DOGE-MEMES<br>GAME<div id="subtitle">
+        <p>This game makes no sense. Run around with WASD and fire memes with spacebar. Avoid the cannon balls.</p></div></p></div>
+	<a href="index.html"><div id="single"><p>START GAME</p></div></a>
+</div>
+  
+  </body>
 </html>

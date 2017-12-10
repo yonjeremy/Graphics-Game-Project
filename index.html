@@ -4,12 +4,11 @@
 		<meta charset=utf-8>
 		<title>My first three.js app</title>
 		<style>
-			body { margin: 0; }
 			canvas { width: 100%; height: 100% }
             #info {
                 position: absolute;
                 top: 10px;
-                left: 10px;
+                left: 30px;
                 font-size: 40px;
                 width: 100%;
                 text-align: left;
@@ -54,41 +53,107 @@
             }
 
             #score{
-                position: absolute;
+                position: fixed;
                 top: 10px;
-                right: 300px;
+                left: 500px;
                 font-size: 40px;
                 width: 100%;
-                text-align: right;
+                text-align: left;
                 z-index: 100;
                 display:block;
                 color: white;
                 font-family: 'Bungee', cursive;
             }
             #scoreNum{
-                position: absolute;
-                top: 0px;
-                right: -150px;
+                position: fixed;
+                top: 10px;
+                left: 700px;
                 font-size: 40px;
                 width: 100%;
-                text-align: right;
+                text-align: left;
                 z-index: 100;
                 display:block;
                 color: white;
                 font-family: 'Bungee', cursive;
             }
+            #retryPage{
+                position: fixed;
+                width: 100%;
+                height:100%;
+                z-index: -1;
+                display:block;
+            }
+            #retryImage{
+                display: block;
+                margin: 1% 2%;
+                width: 850px;
+                height: 470px;
+            }
+            #deadMessage{
+                position: fixed;
+                width: 50%;
+                top:20px;
+                left: 300px;
+                z-index: -1;
+                display:block;
+                font-size: 40px;
+                text-align: right;
+                z-index: -1;
+                color: white;
+                font-family: 'Bungee', cursive;
+                text-align: center;
+            }
+
+            
+            #finalScoreNum{
+                position: fixed;
+                width: 50%;
+                top:250px;
+                left: 600px;
+                display:block;
+                font-size: 40px;
+                z-index: -1;
+                color: white;
+                font-family: 'Bungee', cursive;
+            }
+            #retryButton{
+                position: fixed;
+                width: 200px;
+                top:350px;
+                left: 520px;
+                display:block;
+                font-size: 20px;
+                z-index: -1;
+                background-color: #4CAF50; /* Green */
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                margin: 4px 2px;
+                cursor: pointer;
+
+            }
 		</style>
         <link href="https://fonts.googleapis.com/css?family=Bungee" rel="stylesheet">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	</head>
-	<body style="border:solid">
+	<body>
+
         <div id="info">Health:</div>
         <img id="health1" src="https://t7.rbxcdn.com/ebb9856ff7dcb9b82a87621540f82244"/>
         <img id="health2" src="https://t7.rbxcdn.com/ebb9856ff7dcb9b82a87621540f82244"/>
         <img id="health3" src="https://t7.rbxcdn.com/ebb9856ff7dcb9b82a87621540f82244"/>
         <div id="score">Score: <div id="scoreNum">0</div></div>
-		<script src="three.js"></script>
+        <div id="retryPage"><img id = "retryImage" src="http://media.socastsrm.com/wordpress/wp-content/blogs.dir/94/files/2017/01/Gabe-Bork-1.jpg"/>
+            <p id="deadMessage">You have died  :( <br>Your score is:<div id="finalScoreNum"></div></p>
+            <input id="retryButton" type="button" value="Retry" onClick="window.location.reload()"/></div>
+		
+        
+        
+        <script src="three.js"></script>
 		<script>
+            // declare all global variables
             var scene, camera, renderer, mesh, clock;
             var meshFloor, ambientLight, light;
 
@@ -96,21 +161,9 @@
             var player = { height:3, speed:0.1, canShoot:0, ship1:0, ship2:0, ship3:0 };
             var USE_WIREFRAME = false;
 
-            // var loadingScreen = {
-            //     scene: new THREE.Scene(),
-            //     camera: new THREE.PerspectiveCamera(90, 1280/720, 0.1, 100),
-            //     box: new THREE.Mesh(
-            //         new THREE.BoxGeometry(0.5,0.5,0.5),
-            //         new THREE.MeshBasicMaterial({ color:0x4444ff })
-            //     )
-            // };
-            // var loadingManager = null;
-
+            // keep track of health and score
             var health = 3;
             var scoreNum = 0;
-
-            // Meshes index
-            var meshes = {};
 
             // Bullets array
             var bullets = [];
@@ -121,39 +174,24 @@
             var ships2 = [];
             var ships3 = [];
 
+            // canon/doge
             var canon;
 
             function init(){
+                // initialise scene and camera
                 scene = new THREE.Scene();
                 camera = new THREE.PerspectiveCamera(90, 900/506.25, 0.1, 1000);
-                clock = new THREE.Clock();
-
-
                 
-                // loadingScreen.box.position.set(0,0,5);
-                // loadingScreen.camera.lookAt(loadingScreen.box.position);
-                // loadingScreen.scene.add(loadingScreen.box);
-                
-                // loadingManager = new THREE.LoadingManager();
-                // loadingManager.onProgress = function(item, loaded, total){
-                //     console.log(item, loaded, total);
-                // };
-                // loadingManager.onLoad = function(){
-                //     console.log("loaded all resources");
-                //     RESOURCES_LOADED = true;
-                //     onResourcesLoaded();
-                // };
-                
+                // add background sprite (sunset)
                 var spriteMap = new THREE.TextureLoader().load( "https://static.tumblr.com/0fe68a7027788bc0b5736d2fc207c925/xnhvrng/dZxod00pl/tumblr_static_tumblr_static__640.jpg" );
                 var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
                 var sprite = new THREE.Sprite( spriteMaterial );
                 sprite.position.y = 40;
                 sprite.position.z = 50;
                 sprite.scale.set(300 ,100,1);
-
                 scene.add( sprite );
                  
-                
+                // add the ocean
                 meshFloor = new THREE.Mesh(
                     new THREE.PlaneGeometry(200,100, 10,10),
                     new THREE.MeshPhongMaterial({color:0x15e4ef, wireframe:USE_WIREFRAME})
@@ -162,6 +200,7 @@
                 meshFloor.receiveShadow = true;
                 scene.add(meshFloor);
 
+                // add the individual dock/pier mesh
                 dock = new THREE.Mesh(
                     new THREE.BoxGeometry(2,1,20,10,10,10),
                     new THREE.MeshPhongMaterial({color:0xD2691E, wireframe:USE_WIREFRAME})
@@ -234,61 +273,32 @@
                 dock.receiveShadow = true;
                 scene.add(dock);
 
-                // var spriteMap = new THREE.TextureLoader().load( "https://t7.rbxcdn.com/ebb9856ff7dcb9b82a87621540f82244" );
-                // var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
-                // var sprite = new THREE.Sprite( spriteMaterial );
-                // sprite.position.y = 3;
-                // sprite.position.x = 10;
-                // sprite.position.z = 0;
-                // sprite.scale.set(5 ,5,1);
-                // scene.add( sprite );
-
-                // var spriteMap = new THREE.TextureLoader().load( "https://static.tumblr.com/0fe68a7027788bc0b5736d2fc207c925/xnhvrng/dZxod00pl/tumblr_static_tumblr_static__640.jpg" );
-                // var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
-                // var sprite = new THREE.Sprite( spriteMaterial );
-                // sprite.position.y = 40;
-                // sprite.position.z = 50;
-                // sprite.scale.set(300 ,100,1);
-                // scene.add( sprite );
-
-                // var spriteMap = new THREE.TextureLoader().load( "https://static.tumblr.com/0fe68a7027788bc0b5736d2fc207c925/xnhvrng/dZxod00pl/tumblr_static_tumblr_static__640.jpg" );
-                // var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
-                // var sprite = new THREE.Sprite( spriteMaterial );
-                // sprite.position.y = 40;
-                // sprite.position.z = 50;
-                // sprite.scale.set(300 ,100,1);
-                // scene.add( sprite );
-
-
+                // add the doge cannon (yes its spelt wrongly throughout the game do forgive me)
                 var spriteMap = new THREE.TextureLoader().load( "https://steamuserimages-a.akamaihd.net/ugc/840336991424667693/BEE15309C1ABF116635159908DBBBA8B8A6C5AF4/" );
                 var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
                 canon = new THREE.Sprite( spriteMaterial );
-                canon.scale.set(0.5 ,0.5,0.3);
-                
+                canon.scale.set(0.5 ,0.5,0.3);             
                 scene.add( canon );
 
+                // add ambient and point light
                 ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-                scene.add(ambientLight);
-                
+                scene.add(ambientLight);       
                 light = new THREE.PointLight(0xffffff, 0.8, 18);
                 light.position.set(-3,6,-3);
-                light.castShadow = true;
+                light.castShadow = true; // make sure they cast shadows!
                 light.shadow.camera.near = 0.1;
                 light.shadow.camera.far = 25;
                 scene.add(light);
 
-                                
-
-
-                
-
-                
+                // initialise camera
                 camera.position.set(0, player.height, -15);
                 camera.lookAt(new THREE.Vector3(0,player.height,0));
                 
+                // initialise renderer
                 renderer = new THREE.WebGLRenderer();
                 renderer.setSize(900, 506.25);
 
+                // make sure renderer can display shadows
                 renderer.shadowMap.enabled = true;
                 renderer.shadowMap.type = THREE.BasicShadowMap;
                 
@@ -298,35 +308,19 @@
 
             function animate(){
 
-                // // Play the loading screen until resources are loaded.
-                // if( RESOURCES_LOADED == false ){
-                //     requestAnimationFrame(animate);
-                    
-                //     loadingScreen.box.position.x -= 0.05;
-                //     if( loadingScreen.box.position.x < -10 ) loadingScreen.box.position.x = 10;
-                //     loadingScreen.box.position.y = Math.sin(loadingScreen.box.position.x);
-                    
-                //     renderer.render(loadingScreen.scene, loadingScreen.camera);
-                //     return;
-                // }
-
-                
-
-
-              
-
-    
+                // make the ships in the first row move
                 for(var index=0; index<ships1.length; index+=1){
-                    if( ships1[index] === undefined ) continue;
-                    if( ships1[index].alive == false ){
+                    if( ships1[index] === undefined ) continue; // if ships1 array is empty
+                    if( ships1[index].alive == false ){ // if the setTimeout has passed, delete ship from array
                         ships1.splice(index,1);
                         continue;
                     }
                     
-                    ships1[index].position.add(ships1[index].velocity);
-                    ships1[index].hasMoved += 0.5;
+                    ships1[index].position.add(ships1[index].velocity); // move the ship
+                    ships1[index].hasMoved += 0.5;  // calculate distanced moved (for random shooting)
 
                 }  
+                // make the ships in the second row move
                 for(var index=0; index<ships2.length; index+=1){
                     if( ships2[index] === undefined ) continue;
                     if( ships2[index].alive == false ){                  
@@ -336,6 +330,8 @@
                     ships2[index].hasMoved += 0.6;
                     ships2[index].position.add(ships2[index].velocity);
                 }  
+
+                // make the ships in the third row move
                 for(var index=0; index<ships3.length; index+=1){
                     if( ships3[index] === undefined ) continue;
                     if( ships3[index].alive == false ){
@@ -356,7 +352,8 @@
                     
                     bullets[index].position.add(bullets[index].velocity);
                 }
-
+                // go through ships bullets array and update position
+                // remove bullets when appropriate
                 for(var index=0; index<shipBullets.length; index+=1){
                     if( shipBullets[index] === undefined ) continue;
                     if( shipBullets[index].alive == false ){
@@ -367,67 +364,78 @@
                     shipBullets[index].position.add(shipBullets[index].velocity);
                 }
 
+
+                // this section takes in all user input
                 if(keyboard[87]){ // W key
-                    if(camera.position.z <-14){
-                    camera.position.x -= Math.sin(camera.rotation.y) * player.speed;
+                    if(camera.position.z <-14){ // makes sure the dog stays on the docks
+                    camera.position.x -= Math.sin(camera.rotation.y) * player.speed; // move the player
                     camera.position.z -= -Math.cos(camera.rotation.y) * player.speed;
                     }
                 }
                 if(keyboard[83]){ // S key
-                    if(camera.position.z >-18){
-                        camera.position.x += Math.sin(camera.rotation.y) * player.speed;
+                    if(camera.position.z >-18){// makes sure the dog stays on the docks
+                        camera.position.x += Math.sin(camera.rotation.y) * player.speed;// move the player
                         camera.position.z += -Math.cos(camera.rotation.y) * player.speed;
                     }
                 }
                 if(keyboard[65]){ // A key
-                    if(camera.position.x < 9.5){
-                    camera.position.x += Math.sin(camera.rotation.y + Math.PI/2) * player.speed;
+                    if(camera.position.x < 9.5){// makes sure the dog stays on the docks
+                    camera.position.x += Math.sin(camera.rotation.y + Math.PI/2) * player.speed;// move the player
                     camera.position.z += -Math.cos(camera.rotation.y + Math.PI/2) * player.speed;
                     }
                     canon.scale.set(0.5,0.5,0.3);
                 }
                 if(keyboard[68]){ // D key
-                    if(camera.position.x > -9){
-                        camera.position.x += Math.sin(camera.rotation.y - Math.PI/2) * player.speed;
+                    if(camera.position.x > -9){// makes sure the dog stays on the docks
+                        camera.position.x += Math.sin(camera.rotation.y - Math.PI/2) * player.speed;// move the player
                         camera.position.z += -Math.cos(camera.rotation.y - Math.PI/2) * player.speed;
                     }
                     canon.scale.set(-0.5,0.5,0.3);
                 }
 
-                
-                    canon.position.y = camera.position.y-1;
-                    canon.position.x = camera.position.x ;
-                    canon.position.z = camera.position.z + 1.5;
+                // update the dogs/cannon position
+                canon.position.y = camera.position.y-1;
+                canon.position.x = camera.position.x ;
+                canon.position.z = camera.position.z + 1.5;
 
+                // generate ship in row 1
                 if(player.ship1 <= 0){
+                    //generate sprite
                     var spriteMap = new THREE.TextureLoader().load( "https://vignette3.wikia.nocookie.net/clubpenguin/images/2/26/Pirate_Ship.PNG/revision/latest?cb=20141119012531" );
                     var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
                     var sprite = new THREE.Sprite( spriteMaterial );
                     sprite.position.y = 2;
                     sprite.position.x = 10;
                     sprite.scale.set(5 ,3,1);
-                    sprite.castShadow = true;
+                    sprite.castShadow = true; // makes sure it casts shadows
 
+                    // set the velocity of how fast it moves
                     sprite.velocity = new THREE.Vector3(
-                        -0.06,
+                        -0.07,
                         0,
                         Math.sin(0)
                     );
 
-                    sprite.hasMoved = 0;
+                    sprite.hasMoved = 0; // for calculating when does the ship fire bullets
+
+                    // kill the ship after 12 seconds
                     sprite.alive = true;
                     setTimeout(function(){
                         sprite.alive = false;
                         scene.remove(sprite);
                     }, 12000);
+
+                    // add the ship to the array
                     ships1.push(sprite);
                     scene.add( sprite );
+                    // generate a ship every 200 frames
                     player.ship1 = 200;
 
                    
                 }               
-
+                // generate ship in row 2
                 if(player.ship2 <= 0){
+                    //generate sprite
                     var spriteMap = new THREE.TextureLoader().load( "https://vignette3.wikia.nocookie.net/clubpenguin/images/2/26/Pirate_Ship.PNG/revision/latest?cb=20141119012531" );
                     var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
                     var sprite = new THREE.Sprite( spriteMaterial );
@@ -435,14 +443,15 @@
                     sprite.position.x = -10;
                     sprite.position.z = 5;
                     sprite.scale.set(-5 ,3,1);
-                    sprite.castShadow = true;
-                    sprite.hasMoved = 0;
+                    sprite.castShadow = true;// makes sure it casts shadows
+                    sprite.hasMoved = 0;// for calculating when does the ship fire bullets
+                    // set the velocity of how fast it moves
                     sprite.velocity = new THREE.Vector3(
                         0.08,
                         0,
                         Math.sin(0)
                     );
-
+                    // kill the ship after 10 seconds
                     sprite.alive = true;
                     setTimeout(function(){
                         sprite.alive = false;
@@ -450,10 +459,13 @@
                     }, 10000);
                     ships2.push(sprite);
                     scene.add( sprite );
-                    player.ship2 = 400;
+                    // generate a ship every 200 frames
+                    player.ship2 = 300;
                 }     
 
+                // generate ship in row 3
                 if(player.ship3 <= 0){
+                    // generate sprite
                     var spriteMap = new THREE.TextureLoader().load( "https://vignette3.wikia.nocookie.net/clubpenguin/images/2/26/Pirate_Ship.PNG/revision/latest?cb=20141119012531" );
                     var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
                     var sprite = new THREE.Sprite( spriteMaterial );
@@ -461,14 +473,17 @@
                     sprite.position.x = 10;
                     sprite.position.z = 10;
                     sprite.scale.set(5 ,3,1);
-                    sprite.castShadow = true;
-                    sprite.hasMoved = 0;
+                    sprite.castShadow = true;// make sure to cast shadows
+                    sprite.hasMoved = 0; // to calculate when to fire bullets
+
+                    // moves the ship
                     sprite.velocity = new THREE.Vector3(
                         -0.1,
                         0,
                         Math.sin(0)
                     );
 
+                    // kills the ship after 9 seconds
                     sprite.alive = true;
                     setTimeout(function(){
                         sprite.alive = false;
@@ -476,21 +491,23 @@
                     }, 9000);
                     ships3.push(sprite);
                     scene.add( sprite );
-                    player.ship3 = 700;
+                    // add ship every 500 frames
+                    player.ship3 = 500;
                 }     
 
                 
                 // shoot a bullet
                 if(keyboard[32] && player.canShoot <= 0){ // spacebar key
-                    // creates a bullet as a Mesh object
+                    // creates a bullet as a sprite object
                     var spriteMap = new THREE.TextureLoader().load( "http://t4.rbxcdn.com/809acde32f66f425128cd8b76373b023" );
                     var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
                     var bullet = new THREE.Sprite( spriteMaterial );
 
+                    // set size of bullet
                     bullet.scale.set(2,2,2);
 
 		
-                    // position the bullet to come from the player's weapon
+                    // position the bullet to come from the dog
                     bullet.position.set(
                         camera.position.x,
                         (camera.position.y) - 1,
@@ -501,54 +518,67 @@
                     bullet.velocity = new THREE.Vector3(
                         -Math.sin(camera.rotation.y),
                         0,
-                        Math.cos(camera.rotation.y)
+                        0.25
                     );
                     
-                    // after 1000ms, set alive to false and remove from scene
-                    // setting alive to false flags our update code to remove
-                    // the bullet from the bullets array
+                    // remove bullet after 3 seconds
                     bullet.alive = true;
                     setTimeout(function(){
                         bullet.alive = false;
                         scene.remove(bullet);
-                    }, 1000);
+                    }, 3000);
 
                     bullet.castShadow = true;
                     
-                    // add to scene, array, and set the delay to 10 frames
+                    // add to scene, array, and set the delay to 70 frames
                     bullets.push(bullet);
                     scene.add(bullet);
-                    player.canShoot = 100;
+                    player.canShoot = 70;
 
                     
                 }
+
+                // player has to wait 70 frames before he can shoot
                 if(player.canShoot > 0) {
                     player.canShoot -= 1;
                 }
 
+                // delay for generating ships 1
                 if(player.ship1 > 0) {
                     player.ship1 -= 1;
                 }
-
+                // delay for generating ships 2
                 if(player.ship2 > 0) {
                     player.ship2 -= 1;
                 }
+
+                // delay for generating ships 1
                 if(player.ship3 > 0) {
                     player.ship3 -= 1;
                 }
+
+                // down to 2 health, remove icon
                 if(health == 2){
                     $('#health3').hide();
                 }
+                // down to 1 health, remove icon
                 if(health == 1){
                     $('#health2').hide();
                 }
+                // down to zero health, end the game
                 if(health == 0){
                     $('#health1').hide();
+                    endGame();
                 }
+
+                // checks if bullets has hit the enemy ships
                 checkCollisionEnemy(ships1);
                 checkCollisionEnemy(ships2);
                 checkCollisionEnemy(ships3);
+
+                // checks if enemy bullets has hit the dog
                 checkCollisionCanon();
+                // generate enemy bullets
                 enemyShoot();
 
                 renderer.render(scene, camera);
@@ -556,33 +586,37 @@
 
             }
 
+            // check if user bullets has hit the enemy
             function checkCollisionEnemy(ships){
+                // loop through bullets and ships arrays
                 for(var i=0; i<bullets.length; i+=1){
                     for(var j=0; j<ships.length; j+=1)
-                    if ((bullets[i].position.x < ((ships[j].position.x) + 3)) && 
+                    if ((bullets[i].position.x < ((ships[j].position.x) + 3)) &&  // checks if collision has occurred
                         (bullets[i].position.x > ((ships[j].position.x) - 2)))
                      if ((bullets[i].position.z < ((ships[j].position.z) + 1)) && 
                         (bullets[i].position.z > ((ships[j].position.z) -1))){
-                            scene.remove(ships[j]);
+                            scene.remove(ships[j]); // remove ship from array and scene
                             ships.splice(j,1);
-                            scene.remove(bullets[i]);
+                            scene.remove(bullets[i]); // remove the bullet from array and scene
                             bullets.splice(i,1);
-                            scoreNum += 10;
+                            scoreNum += 10; // increase and display new score
                             $('#scoreNum').text(scoreNum);
                         }                    
                 }
             }
+            // check if enemy bullets has hit the dog
             function checkCollisionCanon(){
+                // loop through ships bullets array
                 for(var i=0; i<shipBullets.length; i+=1){
-                    
+                    // check if collision has occured
                     if ((shipBullets[i].position.x < ((canon.position.x) + 1)) && 
                         (shipBullets[i].position.x > ((canon.position.x) - 1)))
                      if ((shipBullets[i].position.z - 2 < ((canon.position.z) + 1)) && 
                         (shipBullets[i].position.z - 2> ((canon.position.z) -1))){
-                            console.log("hit");
-                            scene.remove(shipBullets[i]);
+                            scene.remove(shipBullets[i]); // remove bullet from array and scene
                             shipBullets.splice(i,1);
-                            health = health -1;
+                            health = health -1; // minus its health
+                            // display ouch image
                             var spriteMap = new THREE.TextureLoader().load( "http://4.bp.blogspot.com/-k3-UkbPqmv0/USQDHRwB9JI/AAAAAAAAAGc/PD0kLImZrNc/s1600/ouch_postcard-p239463418636529312baanr_400.jpg" );
                             var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
                             var ouch = new THREE.Sprite( spriteMaterial );
@@ -605,13 +639,19 @@
                         }                    
                 }
             }
+
+            // generate enemy bullets
             function enemyShoot(){
+                // loop through ships arrays
                 for (i=0;i<ships1.length;i++){
+                    // when ship has moved 10 frames, get random number
                     if (ships1[i].hasMoved > 10)
                     {
                         ships1[i].hasMoved = 0;
-                        random = Math.floor(Math.random() * 5); 
+                        // if random number is 0, fire bullet
+                        random = Math.floor(Math.random() * 4); 
                         if(random == 0)
+                        // generate the bullet
                         enemyShooting(ships1[i],1);
                     }             
                 }
@@ -636,14 +676,14 @@
             }
 
                 // shoot a bullet
-                function enemyShooting(ship,shipType){ // spacebar key
-                    // creates a bullet as a Mesh object
+                function enemyShooting(ship,shipType){ 
+                    // creates a bullet as a sprite object
                     var bullet = new THREE.Mesh(
                         new THREE.SphereGeometry(0.5,8,8),
                         new THREE.MeshBasicMaterial({color:0x3a3a3a})
                     );
 		
-                    // position the bullet to come from the player's weapon
+                    // position the bullet to come from the ship
                     bullet.position.set(
                         ship.position.x,
                         (ship.position.y) - 1,
@@ -654,7 +694,7 @@
                         bullet.velocity = new THREE.Vector3(
                             -0.05,
                             0,
-                            -0.1
+                            -0.2
                         );
                     }
                     if(shipType == 2){
@@ -662,7 +702,7 @@
                         bullet.velocity = new THREE.Vector3(
                             0.05,
                             0,
-                            -0.3
+                            -0.4
                         );
                     }
                     if(shipType == 3){
@@ -677,19 +717,34 @@
                     bullet.castShadow = true;
                     bullet.receiveShadow = true;
 
-                    // after 1000ms, set alive to false and remove from scene
-                    // setting alive to false flags our update code to remove
-                    // the bullet from the bullets array
+                    // kill hte bullet after 5 seconds
                     bullet.alive = true;
                     setTimeout(function(){
                         bullet.alive = false;
                         scene.remove(bullet);
                     }, 5000);
                     
-                    // add to scene, array, and set the delay to 10 frames
+                    // add to scene, array
                     shipBullets.push(bullet);
                     scene.add(bullet);                    
                 }
+
+            // when the game ends
+            function endGame(){
+                // get final score
+                finalScore = scoreNum;
+                health = -1;
+
+                // display dead message and scores
+                $('#finalScoreNum').text(finalScore);
+                $("#retryPage").css("z-index",200);
+                $("#deadMessage").css("z-index",201);
+                $("#finalScoreNum").css("z-index",201);
+                $("#retryButton").css("z-index",201);
+
+
+
+            }
 
             function keyDown(event){
                 keyboard[event.keyCode] = true;
